@@ -1,0 +1,103 @@
+
+CS 405G: Introduction to Database Systems
+Term Project
+(100 points)
+Project Description
+In this project, you will work in groups of four members to design and implement a database
+application. The purpose of the project is to apply the fundamental database design principles, use
+MySQL to create and manipulate a database, and develop a Python application to interact with the
+database.
+The application will help a middle school manage its after-school club activities by maintaining the
+following information:
+• Clubs and their scheduled meetings (date, time, description, classroom), field-trip events
+(date, time, description), annual budgets, and expenses
+• Faculty members and the clubs they advise
+• Students and their club memberships
+Assumptions
+You may assume the following:
+• Each club has a unique club name (e.g., Band, Orchestra, Speech, MathCounts, Choir, etc.)
+• A club’s budget may vary from year to year
+• Each club schedules multiple meetings and events each year
+• A club has exactly one advisor each year, but the advisor may change from year to year
+• A faculty member may advise multiple clubs
+• A student may join multiple clubs, and their club memberships may change across different
+years
+Application Functionalities
+The application should support the following functionalities:
+1. Manage clubs and their associated information
+a) Add or delete club meetings and events
+b) View all students in a specific club for a given year
+c) View all clubs and their faculty advisors for a given year
+d) View all meetings and events for a specific club for a given year
+e) Record the annual budget allocated to each club
+f) Record expenses for each club
+g) Report the total expenses and remaining budget for a club in a given year
+h) Report the total budget of all clubs in a given year
+2. Manage faculty members who advise clubs
+a) Assign a faculty advisor to a club in a year
+b) List all clubs advised by a faculty member
+3. Manage students and their club memberships
+a) Allow students to join or leave a club
+b) List all members of a club
+c) List all clubs that a student belongs to
+d) View all club meetings and events a student should attend on a specific date
+4. Manage scheduling conflicts
+a) Prevent double-booking of classrooms for meetings held by different clubs
+b) Prevent a club from scheduling overlapping meetings
+Part I (30 pts): Problem Definition and ER Diagram
+Due: Wednesday, April 1
+Assume the course instructor is your client for this database application. If you have any questions
+about the application requirements, you should interview the client to clarifies the details before
+finalizing your design.
+You will need to write a clear problem statement describing the system to be developed. Your
+problem statement should:
+a) Clearly identify any assumptions you make about the application requirements
+b) Specify any constraints that should be enforced in the system
+After defining the problem, draw an Entity-Relationship (ER) diagram that represents your
+proposed database design.
+What to submit:
+• PDF file that includes the problem statement and ER diagram.
+Part II (20 pts): Relational Schema and Refinement
+Due: Wednesday, April 8
+Convert your ER diagram from Part I into a relational schema. Identify the primary key for each
+relation.
+Next, examine your relational schema to determine whether any of them suffer from design
+problems such as redundancy or anomalies. If necessary, refine the schemas by decomposing them
+into relations that satisfy BCNF or 3NF.
+You should also justify that the final schemas are well designed by analyzing the functional
+dependencies and outlining the normalization process.
+What to submit:
+• PDF file that includes the relational schema, refinement process and justification of the
+final design.
+Part III (40 pts): Database and Application Programs
+Due: Monday, April 27
+Create a database using MySQL and develop a Python program that allows users to access the
+database. You are not required to populate the database with a large amount of data. However, the
+database should contains sufficient sample data to demonstrate that your database design and
+application functionalities work correctly. Your program should also provide a clear and user-
+friendly interface for users to access and manage the data.
+What to submit:
+• MySQL script file that creates database objects (e.g., tables), defines all necessary
+constraints, and insert initial sample data.
+• Python source code for your application
+• Readme file that describes how to set up the database, how to run the Python program,
+and any required software or libraries.
+Part IV (10 pts): Project Presentation
+Monday, April 27 and Wednesday, April 29
+Each group will present their project in class. The presentation should last 8~10 minutes, followed
+by 2 minutes for questions. During the presentation, you should
+• Present your database design
+• Describe the key technical techniques used in your implementation
+• Discuss any design and implementation challenges or related issues
+• Share any lessons learned during the project
+• Provide a live demonstration of your database application
+What to submit as a group:
+• Submit PowerPoint slides used in the presentation by the end of Wednesday, April 29
+What to submit individually:
+• Team member evaluation form
+Other Requirements
+• Every team should submit only one copy of the required files on Canvas. Be sure to include
+the names of all team members in the submission.
+• If you use any code that you did not write yourself (e.g., code found online, in books, or from
+other courses), you must properly cite the source. Even if you found code and then modified
+it, you must still say where the original code came from.
