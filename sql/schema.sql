@@ -1,5 +1,4 @@
---CREATE DATABASE IF NOT EXISTS club_management;
---USE club_management;
+
 
 CREATE TABLE IF NOT EXISTS Club (
     name VARCHAR(100),
