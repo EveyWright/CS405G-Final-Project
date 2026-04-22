@@ -83,17 +83,35 @@ def main():
     launch()
     while True:
         print("\nClub Management System")
-        print("1. List all clubs")
-        print("2. Add a student")
-        print("3. Exit")
+        print("1. Manage Clubs")
+        print("2. Manage Faculty")
+        print("3. Manage Students")
+        print("4. Exit")
 
         choice = input("Choose an option: ")
 
         if choice == "1":
-            list_clubs()
+            print("1. Option 1")
+            print("2. Option 2")
+            print("3. Go Back")
+
+            choice = input("Choose an option: ")
+            # Implement club management options here
         elif choice == "2":
-            add_student()
+            print("1. Option 1")
+            print("2. Option 2")
+            print("3. Go Back")
+
+            choice = input("Choose an option: ")
+            # Implement faculty management options here
         elif choice == "3":
+            print("1. Option 1")
+            print("2. Option 2")
+            print("3. Go Back")
+
+            choice = input("Choose an option: ")
+            # Implement student management options here
+        elif choice == "4":
             break
         else:
             print("Invalid choice.")
