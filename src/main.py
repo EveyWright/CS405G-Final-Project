@@ -101,15 +101,33 @@ def list_advised_clubs():
     conn = get_connection()
     cursor = conn.cursor()
     faculty_id = int(input("Faculty ID: "))
+    year = int(input("Year: "))
     sql = """
         SELECT club_name FROM Advises
-        WHERE faculty_ID = %s
+        WHERE faculty_ID = %s AND year = %s
     """
-    cursor.execute(sql, (faculty_id,))
+    cursor.execute(sql, (faculty_id, year))
     print("\nClubs advised by faculty member:")
     for row in cursor:
         print(row[0])
     print("\nNumber of rows:", cursor.rowcount)
+    cursor.close()
+    conn.close()
+
+# get faculty ID by name
+def get_faculty_id_by_name():
+    conn = get_connection()
+    cursor = conn.cursor()
+    name = input("Faculty name: ").strip()
+    sql = "SELECT faculty_ID FROM Faculty WHERE name = %s"
+    cursor.execute(sql, (name,))
+    results = cursor.fetchall()
+    if results:
+        print("Faculty ID(s):")
+        for row in results:
+            print(row[0])
+    else:
+        print("Faculty member not found.")
     cursor.close()
     conn.close()
 
@@ -125,6 +143,7 @@ def main():
         choice = input("Choose an option: ")
 
         if choice == "1":
+            print("Club Management")
             print("1. Option 1")
             print("2. Option 2")
             print("3. Go Back")
@@ -132,19 +151,24 @@ def main():
             choice = input("Choose an option: ")
             # Implement club management options here
         elif choice == "2":
-            print("1. Assign a faculty advisor to a club")
-            print("2. List all clubs advised by a faculty member")
-            print("3. Go Back")
+            print("Faculty Management")
+            print("1. Get Faculty ID by Name")
+            print("2. Assign a faculty advisor to a club")
+            print("3. List all clubs advised by a faculty member")
+            print("4. Go Back")
 
             choice = input("Choose an option: ")
             # Implement faculty management options here
             if choice == "1":
-                assign_advisor()
+                get_faculty_id_by_name()
             elif choice == "2":
-                list_advised_clubs()
+                assign_advisor()
             elif choice == "3":
+                list_advised_clubs()
+            elif choice == "4":
                 continue
         elif choice == "3":
+            print("Student Management")
             print("1. Option 1")
             print("2. Option 2")
             print("3. Go Back")
