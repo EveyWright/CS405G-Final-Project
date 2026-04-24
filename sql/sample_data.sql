@@ -13,8 +13,8 @@ INSERT IGNORE INTO Club (name) VALUES
 -- --------------------
 INSERT IGNORE INTO Faculty (faculty_ID, name, title, dept, phone_number, email) VALUES
 (1, 'Dr. Alan Smith', 'Teacher', 'Math', '859-555-1000', 'asmith@school.edu'),
-(2, 'Ms. Laura Johnson', 'Teacher', 'Music', '859-555-2000', 'ljohnson@school.edu');
-
+(2, 'Ms. Laura Johnson', 'Teacher', 'Music', '859-555-2000', 'ljohnson@school.edu'),
+(3, 'Dr. Alan Smith', 'Teacher', 'Art', '859-555-3000', 'asmith2@school.edu');
 -- --------------------
 -- Students
 -- --------------------
