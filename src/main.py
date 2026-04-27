@@ -317,6 +317,122 @@ def view_clubs_advisors():
     cursor.close()
     conn.close()
 
+def view_club_events():
+    conn = get_connection()
+    cursor = conn.cursor()
+    club_name = input("Club Name: ")
+    year = int(input("Year: "))
+    
+    sql = """
+        SELECT e.event_ID, e.date, e.time, e.description,
+               IF(m.event_ID IS NOT NULL, 'Meeting', IF(ft.event_ID IS NOT NULL, 'Field Trip', 'Event')) as type
+        FROM Event e
+        LEFT JOIN Meeting m ON e.event_ID = m.event_ID
+        LEFT JOIN Field_Trip ft ON e.event_ID = ft.event_ID
+        WHERE e.club_name = %s AND YEAR(e.date) = %s
+        ORDER BY e.date, e.time
+    """
+    cursor.execute(sql, (club_name, year))
+    results = cursor.fetchall()
+    
+    print(f"\nEvents for {club_name} ({year}):")
+    if results:
+        for row in results:
+            print(f"[{row[4]}] ID: {row[0]} | {row[1]} at {row[2]} | {row[3]}")
+    else:
+        print("No events found.")
+        
+    cursor.close()
+    conn.close()
+
+def record_budget():
+    conn = get_connection()
+    cursor = conn.cursor()
+    club_name = input("Club Name: ")
+    year = int(input("Year: "))
+    total = float(input("Budget Total ($): "))
+    
+    try:
+        cursor.execute("""
+            INSERT INTO Budget (club_name, year, total) 
+            VALUES (%s, %s, %s)
+            ON DUPLICATE KEY UPDATE total = %s
+        """, (club_name, year, total, total))
+        conn.commit()
+        print("Budget recorded successfully.")
+    except Exception as e:
+        print(f"Error recording budget: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
+def record_expense():
+    conn = get_connection()
+    cursor = conn.cursor()
+    expense_id = int(input("Expense ID: "))
+    club_name = input("Club Name: ")
+    year = int(input("Year: "))
+    amount = float(input("Amount ($): "))
+    memo = input("Memo: ")
+    
+    try:
+        cursor.execute("""
+            INSERT INTO Expense (expense_ID, club_name, year, amount, memo) 
+            VALUES (%s, %s, %s, %s, %s)
+        """, (expense_id, club_name, year, amount, memo))
+        conn.commit()
+        print("Expense recorded successfully.")
+    except Exception as e:
+        print(f"Error recording expense. Ensure a budget exists for this club and year. Error: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
+def report_club_finances():
+    conn = get_connection()
+    cursor = conn.cursor()
+    club_name = input("Club Name: ")
+    year = int(input("Year: "))
+    
+    sql = """
+        SELECT b.total, COALESCE(SUM(e.amount), 0)
+        FROM Budget b
+        LEFT JOIN Expense e ON b.club_name = e.club_name AND b.year = e.year
+        WHERE b.club_name = %s AND b.year = %s
+        GROUP BY b.total
+    """
+    cursor.execute(sql, (club_name, year))
+    result = cursor.fetchone()
+    
+    if result:
+        total_budget, total_expenses = result
+        remaining = total_budget - total_expenses
+        print(f"\nFinancial Report for {club_name} ({year}):")
+        print(f"Total Budget:   ${total_budget:.2f}")
+        print(f"Total Expenses: ${total_expenses:.2f}")
+        print(f"Remaining:      ${remaining:.2f}")
+    else:
+        print("No budget found for this club and year.")
+        
+    cursor.close()
+    conn.close()
+
+def report_total_budgets():
+    conn = get_connection()
+    cursor = conn.cursor()
+    year = int(input("Year: "))
+    
+    cursor.execute("SELECT SUM(total) FROM Budget WHERE year = %s", (year,))
+    result = cursor.fetchone()
+    
+    if result and result[0] is not None:
+        print(f"\nTotal allocated budget for all clubs in {year}: ${result[0]:.2f}")
+    else:
+        print(f"No budgets recorded for {year}.")
+        
+    cursor.close()
+    conn.close()
+
 def main():
     launch()
     while True:
@@ -324,7 +440,8 @@ def main():
         print("1. Manage Clubs")
         print("2. Manage Faculty")
         print("3. Manage Students")
-        print("4. Exit")
+        print("4. Finances and Budgeting")
+        print("5. Exit")
 
         choice = input("Choose an option: ")
 
@@ -332,7 +449,8 @@ def main():
             print("Club Management")
             print("1. Add an event/meeting")
             print("2. Delete an event/meeting")
-            print("3. Go Back")
+            print("3. View club events for a year")
+            print("4. Go Back")
 
             choice = input("Choose an option: ")
             if choice == "1":
@@ -340,6 +458,8 @@ def main():
             elif choice == "2":
                 delete_event()
             elif choice == "3":
+                view_club_events()
+            elif choice == "4":
                 continue
         elif choice == "2":
             print("Faculty Management")
@@ -381,6 +501,25 @@ def main():
             elif choice == "5":
                 continue
         elif choice == "4":
+            print("Finances and Budgeting")
+            print("1. Record Budget")
+            print("2. Record Expense")
+            print("3. Report Club Finances")
+            print("4. Report Total Budgets for a Year")
+            print("5. Go Back")
+
+            choice = input("Choose an option: ")
+            if choice == "1":
+                record_budget()
+            elif choice == "2":
+                record_expense()
+            elif choice == "3":
+                report_club_finances()
+            elif choice == "4":
+                report_total_budgets()
+            elif choice == "5":
+                continue
+        elif choice == "5":
             print("Wiping credentials and exiting...")
             wipe_credentials()
             break
