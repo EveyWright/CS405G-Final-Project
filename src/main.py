@@ -345,6 +345,49 @@ def view_club_events():
     cursor.close()
     conn.close()
 
+def record_budget():
+    conn = get_connection()
+    cursor = conn.cursor()
+    club_name = input("Club Name: ")
+    year = int(input("Year: "))
+    total = float(input("Budget Total ($): "))
+    
+    try:
+        cursor.execute("""
+            INSERT INTO Budget (club_name, year, total) 
+            VALUES (%s, %s, %s)
+            ON DUPLICATE KEY UPDATE total = %s
+        """, (club_name, year, total, total))
+        conn.commit()
+        print("Budget recorded successfully.")
+    except Exception as e:
+        print(f"Error recording budget: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
+def record_expense():
+    conn = get_connection()
+    cursor = conn.cursor()
+    expense_id = int(input("Expense ID: "))
+    club_name = input("Club Name: ")
+    year = int(input("Year: "))
+    amount = float(input("Amount ($): "))
+    memo = input("Memo: ")
+    
+    try:
+        cursor.execute("""
+            INSERT INTO Expense (expense_ID, club_name, year, amount, memo) 
+            VALUES (%s, %s, %s, %s, %s)
+        """, (expense_id, club_name, year, amount, memo))
+        conn.commit()
+        print("Expense recorded successfully.")
+    except Exception as e:
+        print(f"Error recording expense. Ensure a budget exists for this club and year. Error: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
 def main():
     launch()
     while True:
@@ -352,7 +395,8 @@ def main():
         print("1. Manage Clubs")
         print("2. Manage Faculty")
         print("3. Manage Students")
-        print("4. Exit")
+        print("4. Finances and Budgeting")
+        print("5. Exit")
 
         choice = input("Choose an option: ")
 
@@ -412,6 +456,19 @@ def main():
             elif choice == "5":
                 continue
         elif choice == "4":
+            print("Finances and Budgeting")
+            print("1. Record Budget")
+            print("2. Record Expense")
+            print("3. Go Back")
+
+            choice = input("Choose an option: ")
+            if choice == "1":
+                record_budget()
+            elif choice == "2":
+                record_expense()
+            elif choice == "3":
+                continue
+        elif choice == "5":
             print("Wiping credentials and exiting...")
             wipe_credentials()
             break
