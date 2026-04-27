@@ -467,8 +467,6 @@ def main():
             elif choice == "5":
                 continue
         elif choice == "4":
-            print("Exiting...")
-            wipe_credentials()  # Clear credentials on exit
             print("Wiping credentials and exiting...")
             wipe_credentials()
             break
