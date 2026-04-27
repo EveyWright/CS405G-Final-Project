@@ -1,14 +1,18 @@
 import mysql.connector
 import getpass
 
-def get_connection():
-    print("Enter MySQL credentials:")
-    user = input("Username: ")
-    password = getpass.getpass("Password: ")
+_connection = None
 
-    return mysql.connector.connect(
-        host="mysql.cs.uky.edu",     # or "localhost"
-        user=user,
-        password=password,
-        database=user  # Assuming the database name is the same as the username
-    )
+def get_connection():
+    global _connection
+    if _connection is None or not _connection.is_connected():
+        print("Enter MySQL credentials:")
+        user = input("Username: ")
+        password = getpass.getpass("Password: ")
+        _connection = mysql.connector.connect(
+            host="mysql.cs.uky.edu",
+            user=user,
+            password=password,
+            database=user
+        )
+    return _connection
