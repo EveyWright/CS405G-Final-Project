@@ -36,8 +36,6 @@ def launch():
     conn.commit()
     print("Sample data inserted successfully.")
 
-    cursor.close()
-    conn.close()
 
 
 def list_clubs():
@@ -131,6 +129,88 @@ def get_faculty_id_by_name():
     cursor.close()
     conn.close()
 
+def join_or_leave_club():
+    conn = get_connection()
+    cursor = conn.cursor()
+    student_id = int(input("student ID: "))
+    club_name = input("Club name: ")
+    year = int(input("Year: "))
+    print("1. Join  2. Leave")
+    choice = input("Choose: ")
+    if choice == "1":
+        sql = "INSERT IGNORE INTO Member (student_ID, club_name, year) VALUES (%s, %s, %s)"
+        cursor.execute(sql, (student_id, club_name, year))
+        print("Student joined successfully.")
+    elif choice == "2":
+        sql = "DELETE FROM Member WHERE student_ID = %s AND club_name = %s AND year = %s"
+        cursor.execute(sql, (student_id, club_name, year))
+        print("Student left successfully.")
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+def list_club_members():
+    conn = get_connection()
+    cursor = conn.cursor()
+    club_name = input("Club name: ")
+    year = int(input("Year: "))
+    sql = """
+        SELECT s.name FROM Student s
+        JOIN Member m ON s.student_ID = m.student_ID
+        WHERE m.club_name = %s AND m.year = %s
+    """
+    cursor.execute(sql, (club_name, year))
+    print("\nMembers:")
+    for row in cursor:
+        print(row[0])
+    cursor.close()
+    conn.close()
+
+def list_student_clubs():
+    conn = get_connection()
+    cursor = conn.cursor()
+    student_id = int(input("Student ID: "))
+    year = int(input("Year: "))
+    sql = "SELECT club_name FROM Member WHERE student_ID = %s AND year = %s"
+    cursor.execute(sql, (student_id, year))
+    print("\nClubs:")
+    for row in cursor:
+        print(row[0])
+    cursor.close()
+    conn.close()
+
+def student_schedule_on_date():
+    conn = get_connection()
+    cursor = conn.cursor()
+    student_id = int(input("Student ID: "))
+    date = input("Date (YYYY-MM-DD): ")
+    print("\n-- Meetings --")
+    sql = """
+        SELECT e.club_name, e.time, m.classroom, e.description
+        FROM Meeting m
+        JOIN Event e ON m.event_ID = e.event_ID
+        JOIN Member mb ON e.club_name = mb.club_name AND YEAR(e.date) = mb.year
+        WHERE mb.student_ID = %s AND e.date = %s
+    """
+    cursor.execute(sql, (student_id, date))
+    for row in cursor:
+        hours, remainder = divmod(row[1].seconds, 3600)
+        minutes = remainder // 60
+        print(f"Club: {row[0]} | Time: {hours:02}:{minutes:02} | Classroom: {row[2]} | Description: {row[3]}")
+    print("\n-- Events --")
+    sql = """
+        SELECT e.club_name, e.time, e.description
+        FROM Field_Trip ft
+        JOIN Event e ON ft.event_ID = e.event_ID
+        JOIN Member mb ON e.club_name = mb.club_name AND YEAR(e.date) = mb.year
+        WHERE mb.student_ID = %s AND e.date = %s
+    """
+    cursor.execute(sql, (student_id, date))
+    for row in cursor:
+        print(row)
+    cursor.close()
+    conn.close()
+
 def main():
     launch()
     while True:
@@ -156,25 +236,26 @@ def main():
             print("2. Assign a faculty advisor to a club")
             print("3. List all clubs advised by a faculty member")
             print("4. Go Back")
-
-            choice = input("Choose an option: ")
-            # Implement faculty management options here
-            if choice == "1":
-                get_faculty_id_by_name()
-            elif choice == "2":
-                assign_advisor()
-            elif choice == "3":
-                list_advised_clubs()
-            elif choice == "4":
-                continue
+        
         elif choice == "3":
             print("Student Management")
-            print("1. Option 1")
-            print("2. Option 2")
-            print("3. Go Back")
+            print("1. Join or leave a club")
+            print("2. List all members of a club")
+            print("3. List all clubs a student belongs to")
+            print("4. View student schedule on a date")
+            print("5. Go Back")
 
             choice = input("Choose an option: ")
-            # Implement student management options here
+            if choice == "1":
+                join_or_leave_club()
+            elif choice == "2":
+                list_club_members()
+            elif choice == "3":
+                list_student_clubs()
+            elif choice == "4":
+                student_schedule_on_date()
+            elif choice == "5":
+                continue
         elif choice == "4":
             break
         else:
