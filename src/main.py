@@ -317,6 +317,34 @@ def view_clubs_advisors():
     cursor.close()
     conn.close()
 
+def view_club_events():
+    conn = get_connection()
+    cursor = conn.cursor()
+    club_name = input("Club Name: ")
+    year = int(input("Year: "))
+    
+    sql = """
+        SELECT e.event_ID, e.date, e.time, e.description,
+               IF(m.event_ID IS NOT NULL, 'Meeting', IF(ft.event_ID IS NOT NULL, 'Field Trip', 'Event')) as type
+        FROM Event e
+        LEFT JOIN Meeting m ON e.event_ID = m.event_ID
+        LEFT JOIN Field_Trip ft ON e.event_ID = ft.event_ID
+        WHERE e.club_name = %s AND YEAR(e.date) = %s
+        ORDER BY e.date, e.time
+    """
+    cursor.execute(sql, (club_name, year))
+    results = cursor.fetchall()
+    
+    print(f"\nEvents for {club_name} ({year}):")
+    if results:
+        for row in results:
+            print(f"[{row[4]}] ID: {row[0]} | {row[1]} at {row[2]} | {row[3]}")
+    else:
+        print("No events found.")
+        
+    cursor.close()
+    conn.close()
+
 def main():
     launch()
     while True:
@@ -332,7 +360,8 @@ def main():
             print("Club Management")
             print("1. Add an event/meeting")
             print("2. Delete an event/meeting")
-            print("3. Go Back")
+            print("3. View club events for a year")
+            print("4. Go Back")
 
             choice = input("Choose an option: ")
             if choice == "1":
@@ -340,6 +369,8 @@ def main():
             elif choice == "2":
                 delete_event()
             elif choice == "3":
+                view_club_events()
+            elif choice == "4":
                 continue
         elif choice == "2":
             print("Faculty Management")
