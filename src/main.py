@@ -146,8 +146,8 @@ def join_or_leave_club():
         cursor.execute(sql, (student_id, club_name, year))
         print("Student left successfully.")
     conn.commit()
-    cursor.close()
-    conn.close()
+    
+    
 
 def list_club_members():
     conn = get_connection()
@@ -163,8 +163,8 @@ def list_club_members():
     print("\nMembers:")
     for row in cursor:
         print(row[0])
-    cursor.close()
-    conn.close()
+    
+    
 
 def list_student_clubs():
     conn = get_connection()
@@ -176,8 +176,8 @@ def list_student_clubs():
     print("\nClubs:")
     for row in cursor:
         print(row[0])
-    cursor.close()
-    conn.close()
+    
+    
 
 def student_schedule_on_date():
     conn = get_connection()
@@ -208,8 +208,8 @@ def student_schedule_on_date():
     cursor.execute(sql, (student_id, date))
     for row in cursor:
         print(row)
-    cursor.close()
-    conn.close()
+    
+    
 
 def main():
     launch()
