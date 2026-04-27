@@ -18,7 +18,6 @@ def get_connection():
             _credentials["user"] = input("Username: ").strip()
             
         while not _credentials["password"]:
-            # Note: If your IDE still skips getpass, change this back to input()
             _credentials["password"] = getpass.getpass("Password: ").strip()
 
     return mysql.connector.connect(

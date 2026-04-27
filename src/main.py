@@ -71,7 +71,7 @@ def add_student():
     values = (student_id, name, grade, parent_number)
 
     cursor.execute(sql, values)
-    conn.commit()   # IMPORTANT, same as your example
+    conn.commit()
 
     print("Student added successfully.")
 
