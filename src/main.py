@@ -1,5 +1,5 @@
 import os
-from db import get_connection
+from db import get_connection, wipe_credentials
 
 def launch():
     conn = get_connection()
@@ -266,6 +266,8 @@ def main():
             choice = input("Choose an option: ")
             # Implement student management options here
         elif choice == "4":
+            print("Wiping credentials and exiting...")
+            wipe_credentials()
             break
         else:
             print("Invalid choice.")
