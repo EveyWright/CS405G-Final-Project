@@ -166,6 +166,30 @@ def add_event():
         cursor.close()
         conn.close()
 
+def delete_event():
+    conn = get_connection()
+    cursor = conn.cursor()
+    event_id = int(input("Enter Event ID to delete: "))
+    
+    try:
+        # Must delete from child tables first due to foreign key constraints
+        cursor.execute("DELETE FROM Meeting WHERE event_ID = %s", (event_id,))
+        cursor.execute("DELETE FROM Field_Trip WHERE event_ID = %s", (event_id,))
+        # Now delete from parent table
+        cursor.execute("DELETE FROM Event WHERE event_ID = %s", (event_id,))
+        
+        if cursor.rowcount > 0:
+            conn.commit()
+            print("Event deleted successfully.")
+        else:
+            print("Event not found.")
+    except Exception as e:
+        print(f"Error deleting event: {e}")
+        conn.rollback()
+    finally:
+        cursor.close()
+        conn.close()
+
 def main():
     launch()
     while True:
@@ -180,13 +204,15 @@ def main():
         if choice == "1":
             print("Club Management")
             print("1. Add an event/meeting")
-            print("2. Option 2")
+            print("2. Delete an event/meeting")
             print("3. Go Back")
 
             choice = input("Choose an option: ")
             # Implement club management options here
             if choice == "1":
                 add_event()
+            elif choice == "2":
+                delete_event()
         elif choice == "2":
             print("Faculty Management")
             print("1. Get Faculty ID by Name")
