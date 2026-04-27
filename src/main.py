@@ -190,6 +190,30 @@ def delete_event():
         cursor.close()
         conn.close()
 
+def view_clubs_advisors():
+    conn = get_connection()
+    cursor = conn.cursor()
+    year = int(input("Year: "))
+    
+    sql = """
+        SELECT a.club_name, f.name, f.dept
+        FROM Advises a
+        JOIN Faculty f ON a.faculty_ID = f.faculty_ID
+        WHERE a.year = %s
+    """
+    cursor.execute(sql, (year,))
+    results = cursor.fetchall()
+    
+    print(f"\nClubs and Advisors ({year}):")
+    if results:
+        for row in results:
+            print(f"Club: {row[0]} | Advisor: {row[1]} ({row[2]})")
+    else:
+        print("No records found.")
+        
+    cursor.close()
+    conn.close()
+
 def main():
     launch()
     while True:
@@ -218,7 +242,8 @@ def main():
             print("1. Get Faculty ID by Name")
             print("2. Assign a faculty advisor to a club")
             print("3. List all clubs advised by a faculty member")
-            print("4. Go Back")
+            print("4. View all clubs and their advisors for a year")
+            print("5. Go Back")
 
             choice = input("Choose an option: ")
             # Implement faculty management options here
@@ -229,6 +254,8 @@ def main():
             elif choice == "3":
                 list_advised_clubs()
             elif choice == "4":
+                view_clubs_advisors()
+            elif choice == "5":
                 continue
         elif choice == "3":
             print("Student Management")
