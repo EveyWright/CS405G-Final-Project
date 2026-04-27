@@ -388,6 +388,51 @@ def record_expense():
         cursor.close()
         conn.close()
 
+def report_club_finances():
+    conn = get_connection()
+    cursor = conn.cursor()
+    club_name = input("Club Name: ")
+    year = int(input("Year: "))
+    
+    sql = """
+        SELECT b.total, COALESCE(SUM(e.amount), 0)
+        FROM Budget b
+        LEFT JOIN Expense e ON b.club_name = e.club_name AND b.year = e.year
+        WHERE b.club_name = %s AND b.year = %s
+        GROUP BY b.total
+    """
+    cursor.execute(sql, (club_name, year))
+    result = cursor.fetchone()
+    
+    if result:
+        total_budget, total_expenses = result
+        remaining = total_budget - total_expenses
+        print(f"\nFinancial Report for {club_name} ({year}):")
+        print(f"Total Budget:   ${total_budget:.2f}")
+        print(f"Total Expenses: ${total_expenses:.2f}")
+        print(f"Remaining:      ${remaining:.2f}")
+    else:
+        print("No budget found for this club and year.")
+        
+    cursor.close()
+    conn.close()
+
+def report_total_budgets():
+    conn = get_connection()
+    cursor = conn.cursor()
+    year = int(input("Year: "))
+    
+    cursor.execute("SELECT SUM(total) FROM Budget WHERE year = %s", (year,))
+    result = cursor.fetchone()
+    
+    if result and result[0] is not None:
+        print(f"\nTotal allocated budget for all clubs in {year}: ${result[0]:.2f}")
+    else:
+        print(f"No budgets recorded for {year}.")
+        
+    cursor.close()
+    conn.close()
+
 def main():
     launch()
     while True:
@@ -459,7 +504,9 @@ def main():
             print("Finances and Budgeting")
             print("1. Record Budget")
             print("2. Record Expense")
-            print("3. Go Back")
+            print("3. Report Club Finances")
+            print("4. Report Total Budgets for a Year")
+            print("5. Go Back")
 
             choice = input("Choose an option: ")
             if choice == "1":
@@ -467,6 +514,10 @@ def main():
             elif choice == "2":
                 record_expense()
             elif choice == "3":
+                report_club_finances()
+            elif choice == "4":
+                report_total_budgets()
+            elif choice == "5":
                 continue
         elif choice == "5":
             print("Wiping credentials and exiting...")
