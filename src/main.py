@@ -1,5 +1,5 @@
 import os
-from db import get_connection
+from db import get_connection, wipe_credentials
 
 def launch():
     conn = get_connection()
@@ -69,7 +69,7 @@ def add_student():
     values = (student_id, name, grade, parent_number)
 
     cursor.execute(sql, values)
-    conn.commit()   # IMPORTANT, same as your example
+    conn.commit()
 
     print("Student added successfully.")
 
@@ -209,7 +209,113 @@ def student_schedule_on_date():
     for row in cursor:
         print(row)
     
+def add_event():
+    conn = get_connection()
+    cursor = conn.cursor()
     
+    event_id = int(input("Event ID: "))
+    club_name = input("Club Name: ")
+    date = input("Date (YYYY-MM-DD): ")
+    time = input("Time (HH:MM:SS): ")
+    description = input("Description: ")
+    event_type = input("Is this a Meeting (M) or Field Trip (F)? ").strip().upper()
+
+    try:
+        # Insert into parent Event table
+        cursor.execute("""
+            INSERT INTO Event (event_ID, club_name, date, time, description)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (event_id, club_name, date, time, description))
+        
+        # Insert into specific child table
+        if event_type == 'M':
+            classroom = input("Classroom: ")
+            cursor.execute("INSERT INTO Meeting (event_ID, classroom) VALUES (%s, %s)", (event_id, classroom))
+        elif event_type == 'F':
+            location = input("Location: ")
+            cursor.execute("INSERT INTO Field_Trip (event_ID, location) VALUES (%s, %s)", (event_id, location))
+            
+        conn.commit()
+        print("Event added successfully.")
+    except Exception as e:
+        print(f"Error adding event: {e}")
+        conn.rollback()
+    finally:
+        cursor.close()
+        conn.close()
+
+def delete_event():
+    conn = get_connection()
+    cursor = conn.cursor()
+    event_id = int(input("Enter Event ID to delete: "))
+    
+    try:
+        # Must delete from child tables first due to foreign key constraints
+        cursor.execute("DELETE FROM Meeting WHERE event_ID = %s", (event_id,))
+        cursor.execute("DELETE FROM Field_Trip WHERE event_ID = %s", (event_id,))
+        # Now delete from parent table
+        cursor.execute("DELETE FROM Event WHERE event_ID = %s", (event_id,))
+        
+        if cursor.rowcount > 0:
+            conn.commit()
+            print("Event deleted successfully.")
+        else:
+            print("Event not found.")
+    except Exception as e:
+        print(f"Error deleting event: {e}")
+        conn.rollback()
+    finally:
+        cursor.close()
+        conn.close()
+
+def view_club_students():
+    conn = get_connection()
+    cursor = conn.cursor()
+    club_name = input("Club Name: ")
+    year = int(input("Year: "))
+    
+    sql = """
+        SELECT s.student_ID, s.name, s.grade 
+        FROM Student s
+        JOIN Member m ON s.student_ID = m.student_ID
+        WHERE m.club_name = %s AND m.year = %s
+    """
+    cursor.execute(sql, (club_name, year))
+    results = cursor.fetchall()
+    
+    print(f"\nStudents in {club_name} ({year}):")
+    if results:
+        for row in results:
+            print(f"ID: {row[0]} | Name: {row[1]} | Grade: {row[2]}")
+    else:
+        print("No students found.")
+        
+    cursor.close()
+    conn.close()
+
+def view_clubs_advisors():
+    conn = get_connection()
+    cursor = conn.cursor()
+    year = int(input("Year: "))
+    
+    sql = """
+        SELECT a.club_name, f.name, f.dept
+        FROM Advises a
+        JOIN Faculty f ON a.faculty_ID = f.faculty_ID
+        WHERE a.year = %s
+    """
+    cursor.execute(sql, (year,))
+    results = cursor.fetchall()
+    
+    print(f"\nClubs and Advisors ({year}):")
+    if results:
+        for row in results:
+            print(f"Club: {row[0]} | Advisor: {row[1]} ({row[2]})")
+    else:
+        print("No records found.")
+        
+    cursor.close()
+    conn.close()
 
 def main():
     launch()
@@ -224,18 +330,36 @@ def main():
 
         if choice == "1":
             print("Club Management")
-            print("1. Option 1")
-            print("2. Option 2")
+            print("1. Add an event/meeting")
+            print("2. Delete an event/meeting")
             print("3. Go Back")
 
             choice = input("Choose an option: ")
-            # Implement club management options here
+            if choice == "1":
+                add_event()
+            elif choice == "2":
+                delete_event()
+            elif choice == "3":
+                continue
         elif choice == "2":
             print("Faculty Management")
             print("1. Get Faculty ID by Name")
             print("2. Assign a faculty advisor to a club")
             print("3. List all clubs advised by a faculty member")
-            print("4. Go Back")
+            print("4. View all clubs and their advisors in a year")
+            print("5. Go Back")
+
+            choice = input("Choose an option: ")
+            if choice == "1":
+                get_faculty_id_by_name()
+            elif choice == "2":
+                assign_advisor()
+            elif choice == "3":
+                list_advised_clubs()
+            elif choice == "4":
+                view_clubs_advisors()
+            elif choice == "5":
+                continue
         
         elif choice == "3":
             print("Student Management")
@@ -257,6 +381,8 @@ def main():
             elif choice == "5":
                 continue
         elif choice == "4":
+            print("Wiping credentials and exiting...")
+            wipe_credentials()
             break
         else:
             print("Invalid choice.")
