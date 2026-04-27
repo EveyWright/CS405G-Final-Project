@@ -131,6 +131,41 @@ def get_faculty_id_by_name():
     cursor.close()
     conn.close()
 
+def add_event():
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    event_id = int(input("Event ID: "))
+    club_name = input("Club Name: ")
+    date = input("Date (YYYY-MM-DD): ")
+    time = input("Time (HH:MM:SS): ")
+    description = input("Description: ")
+    event_type = input("Is this a Meeting (M) or Field Trip (F)? ").strip().upper()
+
+    try:
+        # Insert into parent Event table
+        cursor.execute("""
+            INSERT INTO Event (event_ID, club_name, date, time, description)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (event_id, club_name, date, time, description))
+        
+        # Insert into specific child table
+        if event_type == 'M':
+            classroom = input("Classroom: ")
+            cursor.execute("INSERT INTO Meeting (event_ID, classroom) VALUES (%s, %s)", (event_id, classroom))
+        elif event_type == 'F':
+            location = input("Location: ")
+            cursor.execute("INSERT INTO Field_Trip (event_ID, location) VALUES (%s, %s)", (event_id, location))
+            
+        conn.commit()
+        print("Event added successfully.")
+    except Exception as e:
+        print(f"Error adding event: {e}")
+        conn.rollback()
+    finally:
+        cursor.close()
+        conn.close()
+
 def main():
     launch()
     while True:
@@ -144,12 +179,14 @@ def main():
 
         if choice == "1":
             print("Club Management")
-            print("1. Option 1")
+            print("1. Add an event/meeting")
             print("2. Option 2")
             print("3. Go Back")
 
             choice = input("Choose an option: ")
             # Implement club management options here
+            if choice == "1":
+                add_event()
         elif choice == "2":
             print("Faculty Management")
             print("1. Get Faculty ID by Name")
