@@ -215,7 +215,7 @@ def add_event():
     event_type = input("Is this a Meeting (M) or Field Trip (F)? ").strip().upper()
 
     try:
-        # --- REQUIREMENT 4b: Prevent overlapping meetings for the same club ---
+        # REQUIREMENT 4b: Prevent overlapping meetings for the same club
         cursor.execute("""
             SELECT event_ID FROM Event 
             WHERE club_name = %s AND date = %s AND time = %s
@@ -229,8 +229,7 @@ def add_event():
         if event_type == 'M':
             classroom = input("Classroom: ")
             
-            # --- REQUIREMENT 4a: Prevent double-booking of classrooms ---
-            # We must JOIN Event and Meeting to check the room against the specific date and time
+            # REQUIREMENT 4a: Prevent double-booking of classrooms
             cursor.execute("""
                 SELECT e.event_ID 
                 FROM Meeting m
@@ -248,7 +247,6 @@ def add_event():
             print("\n Invalid event type. Please enter 'M' or 'F'.")
             return
 
-        # --- Proceed with INSERTS if all validation checks pass ---
         cursor.execute("""
             INSERT INTO Event (event_ID, club_name, date, time, description)
             VALUES (%s, %s, %s, %s, %s)
