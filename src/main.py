@@ -57,10 +57,10 @@ def add_student():
     conn = get_connection()
     cursor = conn.cursor()
 
-    student_id = int(input("Student ID: "))
+    student_id = int(input("Student ID (3-digit number, e.g., 101): "))
     name = input("Name: ")
-    grade = int(input("Grade: "))
-    parent_number = input("Parent phone number: ")
+    grade = int(input("Grade (e.g., 6-12): "))
+    parent_number = input("Parent phone number (e.g., 859-555-1000): ")
 
     sql = """
         INSERT INTO Student (student_ID, name, grade, parent_number)
@@ -81,8 +81,8 @@ def assign_advisor():
     conn = get_connection()
     cursor = conn.cursor()
     club_name = input("Club name: ")
-    faculty_id = int(input("Faculty ID: "))
-    year = int(input("Year: "))
+    faculty_id = int(input("Faculty ID (e.g., 1): "))
+    year = int(input("Year (YYYY): "))
     values = (club_name, faculty_id, year)
     sql = """
         INSERT INTO Advises (club_name, faculty_ID, year)
@@ -98,8 +98,8 @@ def assign_advisor():
 def list_advised_clubs():
     conn = get_connection()
     cursor = conn.cursor()
-    faculty_id = int(input("Faculty ID: "))
-    year = int(input("Year: "))
+    faculty_id = int(input("Faculty ID (e.g., 1): "))
+    year = int(input("Year (YYYY): "))
     sql = """
         SELECT club_name FROM Advises
         WHERE faculty_ID = %s AND year = %s
@@ -132,9 +132,9 @@ def get_faculty_id_by_name():
 def join_or_leave_club():
     conn = get_connection()
     cursor = conn.cursor()
-    student_id = int(input("student ID: "))
+    student_id = int(input("Student ID (3-digit number, e.g., 101): "))
     club_name = input("Club name: ")
-    year = int(input("Year: "))
+    year = int(input("Year (YYYY): "))
     print("1. Join  2. Leave")
     choice = input("Choose: ")
     if choice == "1":
@@ -147,13 +147,11 @@ def join_or_leave_club():
         print("Student left successfully.")
     conn.commit()
     
-    
-
 def list_club_members():
     conn = get_connection()
     cursor = conn.cursor()
     club_name = input("Club name: ")
-    year = int(input("Year: "))
+    year = int(input("Year (YYYY): "))
     sql = """
         SELECT s.name FROM Student s
         JOIN Member m ON s.student_ID = m.student_ID
@@ -164,25 +162,21 @@ def list_club_members():
     for row in cursor:
         print(row[0])
     
-    
-
 def list_student_clubs():
     conn = get_connection()
     cursor = conn.cursor()
-    student_id = int(input("Student ID: "))
-    year = int(input("Year: "))
+    student_id = int(input("Student ID (3-digit number, e.g., 101): "))
+    year = int(input("Year (YYYY): "))
     sql = "SELECT club_name FROM Member WHERE student_ID = %s AND year = %s"
     cursor.execute(sql, (student_id, year))
     print("\nClubs:")
     for row in cursor:
         print(row[0])
     
-    
-
 def student_schedule_on_date():
     conn = get_connection()
     cursor = conn.cursor()
-    student_id = int(input("Student ID: "))
+    student_id = int(input("Student ID (3-digit number, e.g., 101): "))
     date = input("Date (YYYY-MM-DD): ")
     print("\n-- Meetings --")
     sql = """
@@ -213,7 +207,7 @@ def add_event():
     conn = get_connection()
     cursor = conn.cursor()
     
-    event_id = int(input("Event ID: "))
+    event_id = int(input("Event ID (4-digit number, e.g., 1001): "))
     club_name = input("Club Name: ")
     date = input("Date (YYYY-MM-DD): ")
     time = input("Time (HH:MM:SS): ")
@@ -279,7 +273,7 @@ def add_event():
 def delete_event():
     conn = get_connection()
     cursor = conn.cursor()
-    event_id = int(input("Enter Event ID to delete: "))
+    event_id = int(input("Enter Event ID to delete (4-digit number, e.g., 1001): "))
     
     try:
         # Must delete from child tables first due to foreign key constraints
@@ -304,7 +298,7 @@ def view_club_students():
     conn = get_connection()
     cursor = conn.cursor()
     club_name = input("Club Name: ")
-    year = int(input("Year: "))
+    year = int(input("Year (YYYY): "))
     
     sql = """
         SELECT s.student_ID, s.name, s.grade 
@@ -328,7 +322,7 @@ def view_club_students():
 def view_clubs_advisors():
     conn = get_connection()
     cursor = conn.cursor()
-    year = int(input("Year: "))
+    year = int(input("Year (YYYY): "))
     
     sql = """
         SELECT a.club_name, f.name, f.dept
@@ -353,7 +347,7 @@ def view_club_events():
     conn = get_connection()
     cursor = conn.cursor()
     club_name = input("Club Name: ")
-    year = int(input("Year: "))
+    year = int(input("Year (YYYY): "))
     
     sql = """
         SELECT e.event_ID, e.date, e.time, e.description,
@@ -381,8 +375,8 @@ def record_budget():
     conn = get_connection()
     cursor = conn.cursor()
     club_name = input("Club Name: ")
-    year = int(input("Year: "))
-    total = float(input("Budget Total ($): "))
+    year = int(input("Year (YYYY): "))
+    total = float(input("Budget Total ($, e.g., 1500.00): "))
     
     try:
         cursor.execute("""
@@ -401,10 +395,10 @@ def record_budget():
 def record_expense():
     conn = get_connection()
     cursor = conn.cursor()
-    expense_id = int(input("Expense ID: "))
+    expense_id = int(input("Expense ID (e.g., 1): "))
     club_name = input("Club Name: ")
-    year = int(input("Year: "))
-    amount = float(input("Amount ($): "))
+    year = int(input("Year (YYYY): "))
+    amount = float(input("Amount ($, e.g., 200.00): "))
     memo = input("Memo: ")
     
     try:
@@ -424,7 +418,7 @@ def report_club_finances():
     conn = get_connection()
     cursor = conn.cursor()
     club_name = input("Club Name: ")
-    year = int(input("Year: "))
+    year = int(input("Year (YYYY): "))
     
     sql = """
         SELECT b.total, COALESCE(SUM(e.amount), 0)
@@ -452,7 +446,7 @@ def report_club_finances():
 def report_total_budgets():
     conn = get_connection()
     cursor = conn.cursor()
-    year = int(input("Year: "))
+    year = int(input("Year (YYYY): "))
     
     cursor.execute("SELECT SUM(total) FROM Budget WHERE year = %s", (year,))
     result = cursor.fetchone()
