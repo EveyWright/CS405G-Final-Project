@@ -221,7 +221,40 @@ def add_event():
     event_type = input("Is this a Meeting (M) or Field Trip (F)? ").strip().upper()
 
     try:
-        # Insert into parent Event table
+        # --- REQUIREMENT 4b: Prevent overlapping meetings for the same club ---
+        cursor.execute("""
+            SELECT event_ID FROM Event 
+            WHERE club_name = %s AND date = %s AND time = %s
+        """, (club_name, date, time))
+        
+        if cursor.fetchone():
+            print("\n Scheduling Conflict: This club already has an event scheduled at this date and time.")
+            return  # Exit early to prevent the insert
+
+        # Gather specific details depending on the event type
+        if event_type == 'M':
+            classroom = input("Classroom: ")
+            
+            # --- REQUIREMENT 4a: Prevent double-booking of classrooms ---
+            # We must JOIN Event and Meeting to check the room against the specific date and time
+            cursor.execute("""
+                SELECT e.event_ID 
+                FROM Meeting m
+                JOIN Event e ON m.event_ID = e.event_ID
+                WHERE m.classroom = %s AND e.date = %s AND e.time = %s
+            """, (classroom, date, time))
+            
+            if cursor.fetchone():
+                print("\n Scheduling Conflict: This classroom is already booked at this date and time.")
+                return  # Exit early to prevent the insert
+                
+        elif event_type == 'F':
+            location = input("Location: ")
+        else:
+            print("\n Invalid event type. Please enter 'M' or 'F'.")
+            return
+
+        # --- Proceed with INSERTS if all validation checks pass ---
         cursor.execute("""
             INSERT INTO Event (event_ID, club_name, date, time, description)
             VALUES (%s, %s, %s, %s, %s)
@@ -229,16 +262,15 @@ def add_event():
         
         # Insert into specific child table
         if event_type == 'M':
-            classroom = input("Classroom: ")
             cursor.execute("INSERT INTO Meeting (event_ID, classroom) VALUES (%s, %s)", (event_id, classroom))
         elif event_type == 'F':
-            location = input("Location: ")
             cursor.execute("INSERT INTO Field_Trip (event_ID, location) VALUES (%s, %s)", (event_id, location))
             
         conn.commit()
-        print("Event added successfully.")
+        print("\n Event added successfully.")
+        
     except Exception as e:
-        print(f"Error adding event: {e}")
+        print(f"\nError adding event: {e}")
         conn.rollback()
     finally:
         cursor.close()
@@ -450,7 +482,8 @@ def main():
             print("1. Add an event/meeting")
             print("2. Delete an event/meeting")
             print("3. View club events for a year")
-            print("4. Go Back")
+            print("4. View club students for a year")
+            print("5. Go Back")
 
             choice = input("Choose an option: ")
             if choice == "1":
@@ -460,6 +493,8 @@ def main():
             elif choice == "3":
                 view_club_events()
             elif choice == "4":
+                view_club_students()
+            elif choice == "5":
                 continue
         elif choice == "2":
             print("Faculty Management")
