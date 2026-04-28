@@ -129,6 +129,32 @@ def get_faculty_id_by_name():
     cursor.close()
     conn.close()
 
+def view_faculty_table():
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    sql = "SELECT faculty_ID, name, title, dept, phone_number, email FROM Faculty"
+    cursor.execute(sql)
+    results = cursor.fetchall()
+    
+    print("\n" + "="*110)
+    print("FACULTY TABLE")
+    print("="*110)
+    print(f"{'ID':<10} {'Name':<25} {'Department':<20} {'Title':<15} {'Department':<10} {'Phone':<15} {'Email':<30} ")
+    print("-"*110)
+    
+    if results:
+        for row in results:
+            print(f"{row[0]:<5} {row[1]:<25} {row[2]:<15} {row[3]:<10} {row[4]:<15} {row[5]:<30}")
+        print(f"\nTotal faculty members: {len(results)}")
+    else:
+        print("No faculty members found in the database.")
+    
+    print("="*110)
+    
+    cursor.close()
+    conn.close()
+
 def join_or_leave_club():
     conn = get_connection()
     cursor = conn.cursor()
@@ -203,6 +229,32 @@ def student_schedule_on_date():
     for row in cursor:
         print(row)
     
+def view_students_table():
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    sql = "SELECT student_ID, name, grade, parent_number FROM Student"
+    cursor.execute(sql)
+    results = cursor.fetchall()
+    
+    print("\n" + "="*70)
+    print("STUDENTS TABLE")
+    print("="*70)
+    print(f"{'ID':<10} {'Name':<25} {'Grade':<10} {'Parent Phone':<20}")
+    print("-"*70)
+    
+    if results:
+        for row in results:
+            print(f"{row[0]:<10} {row[1]:<25} {row[2]:<10} {row[3]:<20}")
+        print(f"\nTotal students: {len(results)}")
+    else:
+        print("No students found in the database.")
+    
+    print("="*70)
+    
+    cursor.close()
+    conn.close()
+
 def add_event():
     conn = get_connection()
     cursor = conn.cursor()
@@ -314,6 +366,32 @@ def view_club_students():
     else:
         print("No students found.")
         
+    cursor.close()
+    conn.close()
+
+def view_club_table():
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    sql = "SELECT name FROM Club"
+    cursor.execute(sql)
+    results = cursor.fetchall()
+    
+    print("\n" + "="*70)
+    print("CLUBS TABLE")
+    print("="*70)
+    print(f"{'Club Name':<15}")
+    print("-"*70)
+    
+    if results:
+        for row in results:
+            print(f"{row[0]:<15}")
+        print(f"\nTotal clubs: {len(results)}")
+    else:
+        print("No clubs found in the database.")
+    
+    print("="*70)
+    
     cursor.close()
     conn.close()
 
@@ -494,7 +572,8 @@ def main():
             print("2. Assign a faculty advisor to a club")
             print("3. List all clubs advised by a faculty member")
             print("4. View all clubs and their advisors in a year")
-            print("5. Go Back")
+            print("5. View Faculty Table")
+            print("6. Go Back")
 
             choice = input("Choose an option: ")
             if choice == "1":
@@ -506,6 +585,8 @@ def main():
             elif choice == "4":
                 view_clubs_advisors()
             elif choice == "5":
+                view_faculty_table()
+            elif choice == "6":
                 continue
         
         elif choice == "3":
@@ -514,7 +595,8 @@ def main():
             print("2. List all members of a club")
             print("3. List all clubs a student belongs to")
             print("4. View student schedule on a date")
-            print("5. Go Back")
+            print("5. View students table")
+            print("6. Go Back")
 
             choice = input("Choose an option: ")
             if choice == "1":
@@ -526,6 +608,8 @@ def main():
             elif choice == "4":
                 student_schedule_on_date()
             elif choice == "5":
+                view_students_table()
+            elif choice == "6":
                 continue
         elif choice == "4":
             print("Finances and Budgeting")
