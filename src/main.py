@@ -537,6 +537,7 @@ def report_total_budgets():
 
 def main():
     launch()
+    print("\033c")
     while True:
         print("\nClub Management System")
         print("1. Manage Clubs")
@@ -548,7 +549,10 @@ def main():
         choice = input("Choose an option: ")
 
         if choice == "1":
-            print("Club Management")
+            print("\033c")
+            view_club_table()
+            print("\n")
+            print("\nClub Management")
             print("1. Add an event/meeting")
             print("2. Delete an event/meeting")
             print("3. View club events for a year")
@@ -563,17 +567,17 @@ def main():
             elif choice == "3":
                 view_club_events()
             elif choice == "4":
-                view_club_students()
-            elif choice == "5":
                 continue
         elif choice == "2":
-            print("Faculty Management")
+            print("\033c")
+            view_faculty_table()
+            print("\n")
+            print("\nFaculty Management")
             print("1. Get Faculty ID by Name")
             print("2. Assign a faculty advisor to a club")
             print("3. List all clubs advised by a faculty member")
             print("4. View all clubs and their advisors in a year")
-            print("5. View Faculty Table")
-            print("6. Go Back")
+            print("5. Go Back")
 
             choice = input("Choose an option: ")
             if choice == "1":
@@ -585,18 +589,18 @@ def main():
             elif choice == "4":
                 view_clubs_advisors()
             elif choice == "5":
-                view_faculty_table()
-            elif choice == "6":
                 continue
         
         elif choice == "3":
-            print("Student Management")
+            print("\033c")
+            view_students_table()
+            print("\n")
+            print("\nStudent Management")
             print("1. Join or leave a club")
             print("2. List all members of a club")
             print("3. List all clubs a student belongs to")
             print("4. View student schedule on a date")
-            print("5. View students table")
-            print("6. Go Back")
+            print("5. Go Back")
 
             choice = input("Choose an option: ")
             if choice == "1":
@@ -608,8 +612,6 @@ def main():
             elif choice == "4":
                 student_schedule_on_date()
             elif choice == "5":
-                view_students_table()
-            elif choice == "6":
                 continue
         elif choice == "4":
             print("Finances and Budgeting")
