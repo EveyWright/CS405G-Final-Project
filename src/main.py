@@ -2,6 +2,7 @@ import os
 import mysql.connector
 from db import get_connection, wipe_credentials
 
+
 def show_all_clubs():
     """Display all clubs in a formatted table"""
     conn = get_connection()
@@ -288,6 +289,44 @@ def add_club():
         print("Club added successfully.")
     cursor.close()
     conn.close()
+
+def remove_club():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    name = input("Club name: ")
+    
+    try:
+        # Delete related records first (in correct order)
+        cursor.execute("""
+            DELETE m FROM Meeting m
+            JOIN Event e ON m.event_ID = e.event_ID
+            WHERE e.club_name = %s
+        """, (name,))
+        
+        cursor.execute("""
+            DELETE ft FROM Field_Trip ft
+            JOIN Event e ON ft.event_ID = e.event_ID
+            WHERE e.club_name = %s
+        """, (name,))
+        
+        cursor.execute("DELETE FROM Event WHERE club_name = %s", (name,))
+        cursor.execute("DELETE FROM Expense WHERE club_name = %s", (name,))
+        cursor.execute("DELETE FROM Budget WHERE club_name = %s", (name,))
+        cursor.execute("DELETE FROM Member WHERE club_name = %s", (name,))
+        cursor.execute("DELETE FROM Advises WHERE club_name = %s", (name,))
+        
+        # Now delete the club
+        cursor.execute("DELETE FROM Club WHERE name = %s", (name,))
+        
+        conn.commit()
+        print("Club removed successfully.")
+    except mysql.connector.Error as err:
+        print(f"Error removing club: {err}")
+        conn.rollback()
+    finally:
+        cursor.close()
+        conn.close()
 
 def add_faculty():
     conn = get_connection()
@@ -902,11 +941,12 @@ def main():
             print("\n")
             print("\nClub Management")
             print("1. Add a club")
-            print("2. Add an event/meeting")
-            print("3. Delete an event/meeting")
-            print("4. View club events for a year")
-            print("5. View club students for a year")
-            print("6. Go Back")
+            print("2. Remove a club")
+            print("3. Add an event/meeting")
+            print("4. Delete an event/meeting")
+            print("5. View club events for a year")
+            print("6. View club students for a year")
+            print("7. Go Back")
 
             choice = input("Choose an option: ")
             if choice == "1":
@@ -915,26 +955,31 @@ def main():
                 input()
                 print("\033c")
             elif choice == "2":
-                add_event()
+                remove_club()
                 print("Hit 'Enter' to continue...")
                 input()
                 print("\033c")
             elif choice == "3":
-                delete_event()
+                add_event()
                 print("Hit 'Enter' to continue...")
                 input()
                 print("\033c")
             elif choice == "4":
-                view_club_events()
+                delete_event()
                 print("Hit 'Enter' to continue...")
                 input()
                 print("\033c")
             elif choice == "5":
-                view_club_students()
+                view_club_events()
                 print("Hit 'Enter' to continue...")
                 input()
                 print("\033c")
             elif choice == "6":
+                view_club_students()
+                print("Hit 'Enter' to continue...")
+                input()
+                print("\033c")
+            elif choice == "7":
                 continue
         elif choice == "2":
             print("\033c")
