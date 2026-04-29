@@ -2,10 +2,6 @@ import os
 import mysql.connector
 from db import get_connection, wipe_credentials
 
-# ============================================================================
-# HELPER FUNCTIONS TO DISPLAY TABLES
-# ============================================================================
-
 def show_all_clubs():
     """Display all clubs in a formatted table"""
     conn = get_connection()
@@ -886,6 +882,7 @@ def report_total_budgets():
         conn.close()
 
 def main():
+    print("\033c")
     if not launch():
         return
     print("\033c")
@@ -1048,11 +1045,13 @@ def main():
                 input()
                 print("\033c")
             elif choice == "5":
+                show_all_clubs()
                 list_expenses()
                 print("Hit 'Enter' to continue...")
                 input()
                 print("\033c")
             elif choice == "6":
+                show_all_clubs()
                 list_budgets()
                 print("Hit 'Enter' to continue...")
                 input()
@@ -1063,9 +1062,13 @@ def main():
         elif choice == "5":
             print("Wiping credentials and exiting...")
             wipe_credentials()
+            print("\033c")
             break
         else:
             print("Invalid choice.")
+            print("Hit 'Enter' to continue...")
+            input()
+            print("\033c")
 
 
 if __name__ == "__main__":
