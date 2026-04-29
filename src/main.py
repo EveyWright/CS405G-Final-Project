@@ -980,7 +980,9 @@ def main():
                 input()
                 print("\033c")
             elif choice == "7":
+                print("\033c")
                 continue
+                
         elif choice == "2":
             print("\033c")
             view_faculty_table()
