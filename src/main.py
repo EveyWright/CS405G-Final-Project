@@ -1,4 +1,5 @@
 import os
+import mysql.connector
 from db import get_connection, wipe_credentials
 
 # ============================================================================
@@ -147,7 +148,18 @@ def show_student_clubs(student_id, year):
 # ============================================================================
 
 def launch():
-    conn = get_connection()
+    try:
+        conn = get_connection()
+    except mysql.connector.Error as err:
+        if err.errno == mysql.connector.errorcode.ER_ACCESS_DENIED_ERROR:
+            print("\nUnable to connect to MySQL: Invalid username or password.")
+        elif err.errno == mysql.connector.errorcode.ER_BAD_DB_ERROR:
+            print("\nDatabase not found for this user account.")
+        else:
+            print(f"\nDatabase connection failed: {err}")
+        wipe_credentials()
+        return False
+
     cursor = conn.cursor()
     with open(os.path.join(os.path.dirname(__file__), "..", "sql", "schema.sql"), "r") as f:
         sql = f.read()
@@ -180,6 +192,9 @@ def launch():
     
     conn.commit()
     print("Sample data inserted successfully.")
+    cursor.close()
+    conn.close()
+    return True
 
 
 
@@ -213,11 +228,59 @@ def add_student():
     """
     values = (student_id, name, grade, parent_number)
 
-    cursor.execute(sql, values)
-    conn.commit()
+    try:
+        cursor.execute(sql, values)
+        conn.commit()
+    except mysql.connector.Error as err:
+        print(f"Error adding student: {err}")
+        conn.rollback()
+    else:
+        print("Student added successfully.")
+    cursor.close()
+    conn.close()
 
-    print("Student added successfully.")
+def add_club():
+    conn = get_connection()
+    cursor = conn.cursor()
 
+    name = input("Club name: ")
+    sql = "INSERT INTO Club (name) VALUES (%s)"
+    
+    try:
+        cursor.execute(sql, (name,))
+        conn.commit()
+    except mysql.connector.Error as err:
+        print(f"Error adding club: {err}")
+        conn.rollback()
+    else:
+        print("Club added successfully.")
+    cursor.close()
+    conn.close()
+
+def add_faculty():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    name = input("Faculty name: ")
+    title = input("Title: ")
+    dept = input("Department: ")
+    phone_number = input("Phone number: ")
+    email = input("Email: ")
+
+    sql = """
+        INSERT INTO Faculty (name, title, dept, phone_number, email)
+        VALUES (%s, %s, %s, %s, %s)
+    """
+    values = (name, title, dept, phone_number, email)
+
+    try:
+        cursor.execute(sql, values)
+        conn.commit()
+    except mysql.connector.Error as err:
+        print(f"Error adding faculty member: {err}")
+        conn.rollback()
+    else:
+        print("Faculty member added successfully.")
     cursor.close()
     conn.close()
 
@@ -236,9 +299,14 @@ def assign_advisor():
         INSERT INTO Advises (club_name, faculty_ID, year)
         VALUES (%s, %s, %s)
     """
-    cursor.execute(sql, values)
-    conn.commit()
-    print("Advisor assigned successfully.")
+    try:
+        cursor.execute(sql, values)
+        conn.commit()
+    except mysql.connector.Error as err:
+        print(f"Error assigning advisor: {err}")
+        conn.rollback()
+    else:
+        print("Advisor assigned successfully.")
     cursor.close()
     conn.close()
 
@@ -254,11 +322,14 @@ def list_advised_clubs():
         SELECT club_name FROM Advises
         WHERE faculty_ID = %s AND year = %s
     """
-    cursor.execute(sql, (faculty_id, year))
-    print("\nClubs advised by faculty member:")
-    for row in cursor:
-        print(f"  • {row[0]}")
-    print("\nNumber of rows:", cursor.rowcount)
+    try:
+        cursor.execute(sql, (faculty_id, year))
+        print("\nClubs advised by faculty member:")
+        for row in cursor:
+            print(row[0])
+        print("\nNumber of rows:", cursor.rowcount)
+    except mysql.connector.Error as err:
+        print(f"Error listing advised clubs: {err}")
     cursor.close()
     conn.close()
 
@@ -272,12 +343,15 @@ def get_faculty_id_by_name():
     sql = "SELECT faculty_ID FROM Faculty WHERE name = %s"
     cursor.execute(sql, (name,))
     results = cursor.fetchall()
-    if results:
-        print("Faculty ID(s):")
-        for row in results:
-            print(f"  • {row[0]}")
-    else:
-        print("Faculty member not found.")
+    try:
+        if results:
+            print("Faculty ID(s):")
+            for row in results:
+                print(f"  • {row[0]}")
+        else:
+            print("Faculty member not found.")
+    except mysql.connector.Error as err:
+        print(f"Error getting faculty ID: {err}")
     cursor.close()
     conn.close()
 
@@ -322,14 +396,18 @@ def join_or_leave_club():
     club_name = input("\nClub name: ")
     print("1. Join  2. Leave")
     choice = input("Choose: ")
-    if choice == "1":
-        sql = "INSERT IGNORE INTO Member (student_ID, club_name, year) VALUES (%s, %s, %s)"
-        cursor.execute(sql, (student_id, club_name, year))
-        print("Student joined successfully.")
-    elif choice == "2":
-        sql = "DELETE FROM Member WHERE student_ID = %s AND club_name = %s AND year = %s"
-        cursor.execute(sql, (student_id, club_name, year))
-        print("Student left successfully.")
+    try:
+        if choice == "1":
+            sql = "INSERT IGNORE INTO Member (student_ID, club_name, year) VALUES (%s, %s, %s)"
+            cursor.execute(sql, (student_id, club_name, year))
+            print("Student joined successfully.")
+        elif choice == "2":
+            sql = "DELETE FROM Member WHERE student_ID = %s AND club_name = %s AND year = %s"
+            cursor.execute(sql, (student_id, club_name, year))
+            print("Student left successfully.")
+    except mysql.connector.Error as err:
+        print(f"Error updating club membership: {err}")
+        conn.rollback()
     conn.commit()
     cursor.close()
     conn.close()
@@ -346,10 +424,13 @@ def list_club_members():
         JOIN Member m ON s.student_ID = m.student_ID
         WHERE m.club_name = %s AND m.year = %s
     """
-    cursor.execute(sql, (club_name, year))
-    print("\nMembers:")
-    for row in cursor:
-        print(f"  • {row[0]}")
+    try:
+        cursor.execute(sql, (club_name, year))
+        print("\nMembers:")
+        for row in cursor:
+            print(f"  • {row[0]}")
+    except mysql.connector.Error as err:
+        print(f"Error listing club members: {err}")
     cursor.close()
     conn.close()
     
@@ -361,11 +442,14 @@ def list_student_clubs():
     student_id = int(input("\nStudent ID (3-digit number, e.g., 101): "))
     year = int(input("Year (YYYY): "))
     sql = "SELECT club_name FROM Member WHERE student_ID = %s AND year = %s"
-    cursor.execute(sql, (student_id, year))
-    print("\nClubs:")
-    for row in cursor:
-        print(f"  • {row[0]}")
-    cursor.close()
+    try:
+        cursor.execute(sql, (student_id, year))
+        print("\nClubs:")
+        for row in cursor:
+             print(f"  • {row[0]}")
+    except mysql.connector.Error as err:
+        print(f"Error listing student clubs: {err}")
+    cursor.close()  
     conn.close()
     
 def student_schedule_on_date():
@@ -396,9 +480,12 @@ def student_schedule_on_date():
         JOIN Member mb ON e.club_name = mb.club_name AND YEAR(e.date) = mb.year
         WHERE mb.student_ID = %s AND e.date = %s
     """
-    cursor.execute(sql, (student_id, date))
-    for row in cursor:
-        print(row)
+    try:
+        cursor.execute(sql, (student_id, date))
+        for row in cursor:
+            print(row)
+    except mysql.connector.Error as err:
+        print(f"Error retrieving student schedule: {err}")
     cursor.close()
     conn.close()
     
@@ -533,15 +620,18 @@ def view_club_students():
         JOIN Member m ON s.student_ID = m.student_ID
         WHERE m.club_name = %s AND m.year = %s
     """
-    cursor.execute(sql, (club_name, year))
-    results = cursor.fetchall()
-    
-    print(f"\nStudents in {club_name} ({year}):")
-    if results:
-        for row in results:
-            print(f"ID: {row[0]} | Name: {row[1]} | Grade: {row[2]}")
-    else:
-        print("No students found.")
+    try:
+        cursor.execute(sql, (club_name, year))
+        results = cursor.fetchall()
+        
+        print(f"\nStudents in {club_name} ({year}):")
+        if results:
+            for row in results:
+                print(f"ID: {row[0]} | Name: {row[1]} | Grade: {row[2]}")
+        else:
+            print("No students found.")
+    except mysql.connector.Error as err:
+        print(f"Error listing club students: {err}")
         
     cursor.close()
     conn.close()
@@ -551,23 +641,27 @@ def view_club_table():
     cursor = conn.cursor()
     
     sql = "SELECT name FROM Club"
-    cursor.execute(sql)
-    results = cursor.fetchall()
-    
-    print("\n" + "="*70)
-    print("CLUBS TABLE")
-    print("="*70)
-    print(f"{'Club Name':<15}")
-    print("-"*70)
-    
-    if results:
-        for row in results:
-            print(f"{row[0]:<15}")
-        print(f"\nTotal clubs: {len(results)}")
-    else:
-        print("No clubs found in the database.")
-    
-    print("="*70)
+
+    try:
+        cursor.execute(sql)
+        results = cursor.fetchall()
+        
+        print("\n" + "="*70)
+        print("CLUBS TABLE")
+        print("="*70)
+        print(f"{'Club Name':<15}")
+        print("-"*70)
+        
+        if results:
+            for row in results:
+                print(f"{row[0]:<15}")
+            print(f"\nTotal clubs: {len(results)}")
+        else:
+            print("No clubs found in the database.")
+        
+        print("="*70)
+    except mysql.connector.Error as err:
+        print(f"Error retrieving clubs: {err}")
     
     cursor.close()
     conn.close()
@@ -583,15 +677,19 @@ def view_clubs_advisors():
         JOIN Faculty f ON a.faculty_ID = f.faculty_ID
         WHERE a.year = %s
     """
-    cursor.execute(sql, (year,))
-    results = cursor.fetchall()
-    
-    print(f"\nClubs and Advisors ({year}):")
-    if results:
-        for row in results:
-            print(f"Club: {row[0]} | Advisor: {row[1]} ({row[2]})")
-    else:
-        print("No records found.")
+
+    try:
+        cursor.execute(sql, (year,))
+        results = cursor.fetchall()
+        
+        print(f"\nClubs and Advisors ({year}):")
+        if results:
+            for row in results:
+                print(f"Club: {row[0]} | Advisor: {row[1]} ({row[2]})")
+        else:
+            print("No records found.")
+    except mysql.connector.Error as err:
+        print(f"Error retrieving clubs and advisors: {err}")
         
     cursor.close()
     conn.close()
@@ -613,15 +711,18 @@ def view_club_events():
         WHERE e.club_name = %s AND YEAR(e.date) = %s
         ORDER BY e.date, e.time
     """
-    cursor.execute(sql, (club_name, year))
-    results = cursor.fetchall()
-    
-    print(f"\nEvents for {club_name} ({year}):")
-    if results:
-        for row in results:
-            print(f"[{row[4]}] ID: {row[0]} | {row[1]} at {row[2]} | {row[3]}")
-    else:
-        print("No events found.")
+    try:
+        cursor.execute(sql, (club_name, year))
+        results = cursor.fetchall()
+        
+        print(f"\nEvents for {club_name} ({year}):")
+        if results:
+            for row in results:
+                print(f"[{row[4]}] ID: {row[0]} | {row[1]} at {row[2]} | {row[3]}")
+        else:
+            print("No events found.")
+    except mysql.connector.Error as err:
+        print(f"Error retrieving club events: {err}")
         
     cursor.close()
     conn.close()
@@ -688,21 +789,24 @@ def report_club_finances():
         WHERE b.club_name = %s AND b.year = %s
         GROUP BY b.total
     """
-    cursor.execute(sql, (club_name, year))
-    result = cursor.fetchone()
-    
-    if result:
-        total_budget, total_expenses = result
-        remaining = total_budget - total_expenses
-        print(f"\nFinancial Report for {club_name} ({year}):")
-        print(f"Total Budget:   ${total_budget:.2f}")
-        print(f"Total Expenses: ${total_expenses:.2f}")
-        print(f"Remaining:      ${remaining:.2f}")
-    else:
-        print("No budget found for this club and year.")
+    try:
+        cursor.execute(sql, (club_name, year))
+        result = cursor.fetchone()
         
-    cursor.close()
-    conn.close()
+        if result:
+            total_budget, total_expenses = result
+            remaining = total_budget - total_expenses
+            print(f"\nFinancial Report for {club_name} ({year}):")
+            print(f"Total Budget:   ${total_budget:.2f}")
+            print(f"Total Expenses: ${total_expenses:.2f}")
+            print(f"Remaining:      ${remaining:.2f}")
+        else:
+            print("No budget found for this club and year.")
+    except mysql.connector.Error as err:
+        print(f"Error generating financial report: {err}")
+    finally:
+        cursor.close()
+        conn.close()
 
 def report_total_budgets():
     conn = get_connection()
@@ -729,22 +833,25 @@ def report_total_budgets():
     else:
         print("No budgets recorded for this year.")
 
-    cursor.execute("SELECT SUM(total) FROM Budget WHERE year = %s", (year,))
-    result = cursor.fetchone()
-
-    if result and result[0] is not None:
+    try:
+        cursor.execute("SELECT SUM(total) FROM Budget WHERE year = %s", (year,))
+        result = cursor.fetchone()
+    
+        if result and result[0] is not None:
+            print("="*60)
+            print(f"Total allocated budget for all clubs in {year}: ${result[0]:.2f}")
+        else:
+            print("No budgets recorded for this year.")
+    except mysql.connector.Error as err:
+        print(f"Error calculating total budgets: {err}")
+    finally:
         print("="*60)
-        print(f"Total allocated budget for all clubs in {year}: ${result[0]:.2f}")
-    else:
-        print("No budgets recorded for this year.")
-
-    print("="*60)
-    cursor.close()
-    conn.close()
+        cursor.close()
+        conn.close()
 
 def main():
-    print("\033c")
-    launch()
+    if not launch():
+        return
     print("\033c")
     while True:
         print("\nClub Management System")
@@ -761,42 +868,47 @@ def main():
             view_club_table()
             print("\n")
             print("\nClub Management")
-            print("1. Add an event/meeting")
-            print("2. Delete an event/meeting")
-            print("3. View club events for a year")
-            print("4. View club students for a year")
-            print("5. Go Back")
+            print("1. Add a club")
+            print("2. Add an event/meeting")
+            print("3. Delete an event/meeting")
+            print("4. View club events for a year")
+            print("5. View club students for a year")
+            print("6. Go Back")
 
             choice = input("Choose an option: ")
             if choice == "1":
-                add_event()
+                add_club()
                 print("Hit 'Enter' to continue...")
                 input()
                 print("\033c")
             elif choice == "2":
-                delete_event()
+                add_event()
                 print("Hit 'Enter' to continue...")
                 input()
                 print("\033c")
             elif choice == "3":
-                view_club_events()
+                delete_event()
                 print("Hit 'Enter' to continue...")
                 input()
                 print("\033c")
             elif choice == "4":
-                view_club_students()
+                view_club_events()
                 print("Hit 'Enter' to continue...")
                 input()
                 print("\033c")
             elif choice == "5":
+                view_club_students()
+                print("Hit 'Enter' to continue...")
+                input()
                 print("\033c")
+            elif choice == "6":
                 continue
         elif choice == "2":
             print("\033c")
             view_faculty_table()
             print("\n")
             print("\nFaculty Management")
-            print("1. Get Faculty ID by Name")
+            print("1. Add a faculty member")
             print("2. Assign a faculty advisor to a club")
             print("3. List all clubs advised by a faculty member")
             print("4. View all clubs and their advisors in a year")
@@ -804,7 +916,7 @@ def main():
 
             choice = input("Choose an option: ")
             if choice == "1":
-                get_faculty_id_by_name()
+                add_faculty()
                 print("Hit 'Enter' to continue...")
                 input()
                 print("\033c")
@@ -832,34 +944,40 @@ def main():
             view_students_table()
             print("\n")
             print("\nStudent Management")
-            print("1. Join or leave a club")
-            print("2. List all members of a club")
-            print("3. List all clubs a student belongs to")
-            print("4. View student schedule on a date")
-            print("5. Go Back")
+            print("1. Add a student")
+            print("2. Join or leave a club")
+            print("3. List all members of a club")
+            print("4. List all clubs a student belongs to")
+            print("5. View student schedule on a date")
+            print("6. Go Back")
 
             choice = input("Choose an option: ")
             if choice == "1":
-                join_or_leave_club()
+                add_student()
                 print("Hit 'Enter' to continue...")
                 input()
                 print("\033c")
             elif choice == "2":
-                list_club_members()
+                join_or_leave_club()
                 print("Hit 'Enter' to continue...")
                 input()
                 print("\033c")
             elif choice == "3":
-                list_student_clubs()
+                list_club_members()
                 print("Hit 'Enter' to continue...")
                 input()
                 print("\033c")
             elif choice == "4":
-                student_schedule_on_date()
+                list_student_clubs()
                 print("Hit 'Enter' to continue...")
                 input()
                 print("\033c")
             elif choice == "5":
+                student_schedule_on_date()
+                print("Hit 'Enter' to continue...")
+                input()
+                print("\033c")
+            elif choice == "6":
                 print("\033c")
                 continue
         elif choice == "4":

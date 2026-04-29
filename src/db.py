@@ -18,7 +18,7 @@ def get_connection():
             
         while not _credentials["password"]:
             _credentials["password"] = getpass.getpass("Password: ").strip()
-
+    
     return mysql.connector.connect(
         host="mysql.cs.uky.edu",     
         user=_credentials["user"],
