@@ -196,7 +196,43 @@ def launch():
     conn.close()
     return True
 
+def list_budgets():
+    conn = get_connection()
+    cursor = conn.cursor()
+    club_name = input("\nClub Name: ")
+    year = int(input("Year (YYYY): "))
+    sql = "SELECT total FROM Budget WHERE club_name = %s AND year = %s"
+    try:
+        cursor.execute(sql, (club_name, year))
+        result = cursor.fetchone()
+        if result:
+            print(f"\nBudget for {club_name} in {year}: ${result[0]:.2f}")
+        else:
+            print(f"\nNo budget found for {club_name} in {year}.")
+    except mysql.connector.Error as err:
+        print(f"Error retrieving budget: {err}")
+    cursor.close()
+    conn.close()
 
+def list_expenses():
+    conn = get_connection()
+    cursor = conn.cursor()
+    club_name = input("\nClub Name: ")
+    year = int(input("Year (YYYY): "))
+    sql = "SELECT expense_ID, club_name, year, amount, memo FROM Expense WHERE club_name = %s AND year = %s"
+    try:
+        cursor.execute(sql, (club_name, year))
+        results = cursor.fetchall()
+        if results:
+            print(f"\nExpenses for {club_name} in {year}:")
+            for row in results:
+                print(f"  • {row[0]}: ${row[3]:.2f} - {row[4]}")
+        else:
+            print(f"\nNo expenses found for {club_name} in {year}.")
+    except mysql.connector.Error as err:
+        print(f"Error retrieving expenses: {err}")
+    cursor.close()
+    conn.close()
 
 def list_clubs():
     conn = get_connection()
@@ -964,7 +1000,9 @@ def main():
             print("2. Record Expense")
             print("3. Report Club Finances")
             print("4. Report Total Budgets for a Year")
-            print("5. Go Back")
+            print("5. List Expenses for a Club in a Year")
+            print("6. List Budgets for a Club in a Year")
+            print("7. Go Back")
 
             choice = input("Choose an option: ")
             if choice == "1":
@@ -988,6 +1026,16 @@ def main():
                 input()
                 print("\033c")
             elif choice == "5":
+                list_expenses()
+                print("Hit 'Enter' to continue...")
+                input()
+                print("\033c")
+            elif choice == "6":
+                list_budgets()
+                print("Hit 'Enter' to continue...")
+                input()
+                print("\033c")
+            elif choice == "7":
                 print("\033c")
                 continue
         elif choice == "5":
