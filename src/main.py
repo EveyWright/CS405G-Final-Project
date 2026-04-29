@@ -708,15 +708,37 @@ def report_total_budgets():
     conn = get_connection()
     cursor = conn.cursor()
     year = int(input("Year (YYYY): "))
-    
+
+    cursor.execute("""
+        SELECT club_name, total 
+        FROM Budget 
+        WHERE year = %s
+        ORDER BY club_name
+    """, (year,))
+    results = cursor.fetchall()
+
+    print("\n" + "="*60)
+    print(f"BUDGETS FOR ALL CLUBS ({year})")
+    print("="*60)
+    print(f"{'Club':<30} {'Budget':<15}")
+    print("-"*60)
+
+    if results:
+        for row in results:
+            print(f"{row[0]:<30} ${row[1]:>12.2f}")
+    else:
+        print("No budgets recorded for this year.")
+
     cursor.execute("SELECT SUM(total) FROM Budget WHERE year = %s", (year,))
     result = cursor.fetchone()
-    
+
     if result and result[0] is not None:
-        print(f"\nTotal allocated budget for all clubs in {year}: ${result[0]:.2f}")
+        print("="*60)
+        print(f"Total allocated budget for all clubs in {year}: ${result[0]:.2f}")
     else:
-        print(f"No budgets recorded for {year}.")
-        
+        print("No budgets recorded for this year.")
+
+    print("="*60)
     cursor.close()
     conn.close()
 
