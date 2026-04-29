@@ -345,7 +345,7 @@ def assign_advisor():
 
 # list all clubs advised by a faculty member
 def list_advised_clubs():
-    show_all_faculty()
+    view_faculty_table()
     
     conn = get_connection()
     cursor = conn.cursor()
@@ -968,6 +968,7 @@ def main():
                 input()
                 print("\033c")
             elif choice == "3":
+                print("\033c")
                 list_advised_clubs()
                 print("Hit 'Enter' to continue...")
                 input()
@@ -1023,6 +1024,7 @@ def main():
                 print("\033c")
                 continue
         elif choice == "4":
+            print("\033c")
             print("Finances and Budgeting")
             print("1. Record Budget")
             print("2. Record Expense")
