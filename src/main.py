@@ -343,6 +343,26 @@ def assign_advisor():
     cursor.close()
     conn.close()
 
+def list_expenses():
+    conn = get_connection()
+    cursor = conn.cursor()
+    club_name = input("\nClub Name: ")
+    year = int(input("Year (YYYY): "))
+    sql = "SELECT expense_ID, club_name, year, amount, memo FROM Expense WHERE club_name = %s AND year = %s"
+    try:
+        cursor.execute(sql, (club_name, year))
+        results = cursor.fetchall()
+        if results:
+            print(f"\nExpenses for {club_name} in {year}:")
+            for row in results:
+                print(f"  • {row[0]}: ${row[3]:.2f} - {row[4]}")
+        else:
+            print(f"\nNo expenses found for {club_name} in {year}.")
+    except mysql.connector.Error as err:
+        print(f"Error retrieving expenses: {err}")
+    cursor.close()
+    conn.close()
+
 # list all clubs advised by a faculty member
 def list_advised_clubs():
     view_faculty_table()
@@ -1030,7 +1050,8 @@ def main():
             print("2. Record Expense")
             print("3. Last Club Finances")
             print("4. List Total Budgets for a Year")
-            print("5. Go Back")
+            print("5. List expenses for a club and year")
+            print("6. Go Back")
 
             choice = input("Choose an option: ")
             if choice == "1":
@@ -1054,6 +1075,11 @@ def main():
                 input()
                 print("\033c")
             elif choice == "5":
+                list_expenses()
+                print("Hit 'Enter' to continue...")
+                input()
+                print("\033c")
+            elif choice == "6":
                 print("\033c")
                 continue
         elif choice == "5":
